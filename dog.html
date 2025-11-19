@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>狗狗年齡小幫手｜Dog Age Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* ====== 全站設定 ====== */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC",
+        "PingFang TC", sans-serif;
+      background: #fff7e6; /* 溫暖米色底 */
+      color: #4a3b2a;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 24px 12px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      background: #fffaf0;
+      border-radius: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      padding: 24px 20px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 柴柴耳朵裝飾 */
+    .ear {
+      width: 80px;
+      height: 80px;
+      background: #e0a15a; /* 柴犬毛色 */
+      position: absolute;
+      top: -40px;
+      border-radius: 80px 80px 10px 10px;
+      transform: rotate(-18deg);
+      opacity: 0.9;
+    }
+
+    .ear.right {
+      right: -10px;
+      transform: rotate(18deg) scaleX(-1);
+    }
+
+    .ear.left {
+      left: -10px;
+    }
+
+    /* ====== 標題區 ====== */
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #4a3b2a;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #8a6a4a;
+    }
+
+    /* 小柴頭像 */
+    .dog-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 10px auto 0;
+      background: radial-gradient(circle at 30% 30%, #fff, #f5c26b 60%, #c58a3a 100%);
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #f5c26b;
+    }
+
+    .dog-face {
+      position: absolute;
+      inset: 0;
+    }
+
+    .dog-eye {
+      width: 8px;
+      height: 8px;
+      background: #4a3b2a;
+      border-radius: 50%;
+      position: absolute;
+      top: 32px;
+    }
+
+    .dog-eye.left {
+      left: 26px;
+    }
+
+    .dog-eye.right {
+      right: 26px;
+    }
+
+    .dog-nose {
+      width: 14px;
+      height: 10px;
+      background: #4a3b2a;
+      border-radius: 50% 50% 60% 60%;
+      position: absolute;
+      left: 50%;
+      top: 42px;
+      transform: translateX(-50%);
+    }
+
+    .dog-mouth {
+      width: 22px;
+      height: 14px;
+      border-bottom: 3px solid #4a3b2a;
+      border-radius: 0 0 40px 40px;
+      position: absolute;
+      left: 50%;
+      top: 48px;
+      transform: translateX(-50%);
+    }
+
+    /* ====== 表單區 ====== */
+    .card {
+      background: #fffdf7;
+      border-radius: 18px;
+      padding: 16px 14px;
+      margin-bottom: 14px;
+      border: 1px solid #f3e0c4;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #4a3b2a;
+    }
+
+    .chip {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #ffe2a8;
+      color: #704b1f;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: #6b5436;
+    }
+
+    input[type="date"],
+    input[type="text"] {
+      width: 100%;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1px solid #e0c59f;
+      font-size: 0.95rem;
+      background: #fffaf3;
+      color: #4a3b2a;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input[type="date"]:focus,
+    input[type="text"]:focus {
+      border-color: #e0a15a;
+      box-shadow: 0 0 0 2px rgba(224, 161, 90, 0.2);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #a1825e;
+    }
+
+    .error {
+      font-size: 0.8rem;
+      color: #b4553d;
+      margin-top: 4px;
+    }
+
+    /* ====== 結果區 ====== */
+    .result-card {
+      background: #fff6e0;
+      border-radius: 18px;
+      padding: 14px 14px 16px;
+      border: 1px solid #f0d3a4;
+      position: relative;
+      z-index: 1;
+    }
+
+    .result-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .paw {
+      font-size: 1.1rem;
+    }
+
+    .result-main {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #4a3b2a;
+    }
+
+    .result-main strong {
+      color: #c2762b;
+    }
+
+    .result-sub {
+      font-size: 0.85rem;
+      color: #8a6a4a;
+      margin-top: 6px;
+    }
+
+    /* 預設提示 */
+    .placeholder-text {
+      font-size: 0.9rem;
+      color: #a1825e;
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        padding: 20px 16px 22px;
+        border-radius: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <!-- 柴柴耳朵 -->
+    <div class="ear left"></div>
+    <div class="ear right"></div>
+
+    <!-- 頂部標題 -->
+    <header class="header">
+      <div class="title">狗狗年齡小幫手</div>
+      <div class="subtitle">輸入毛孩生日，一起看看牠現在幾歲、像幾歲的人 🐶</div>
+      <div class="dog-icon" aria-hidden="true">
+        <div class="dog-face">
+          <div class="dog-eye left"></div>
+          <div class="dog-eye right"></div>
+          <div class="dog-nose"></div>
+          <div class="dog-mouth"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 輸入區 -->
+    <section class="card" aria-label="狗狗資料輸入">
+      <div class="card-title">
+        填寫狗狗資訊
+        <span class="chip">Shiba 色系</span>
+      </div>
+
+      <div class="form-row">
+        <label for="dog-name">狗狗名字（選填）</label>
+        <input
+          id="dog-name"
+          type="text"
+          placeholder="例如：妙麗、球球、Money..."
+        />
+        <p class="hint">若未填寫，會以「狗狗」稱呼。</p>
+      </div>
+
+      <div class="form-row">
+        <label for="birthdate">狗狗出生日期 <span style="color:#b4553d;">＊必填</span></label>
+        <input id="birthdate" type="date" />
+        <p class="hint">請選擇狗狗的出生年月日，系統會自動幫你換算年齡。</p>
+        <p id="error-msg" class="error" style="display:none;"></p>
+      </div>
+
+      <p class="hint">
+        換算規則：前 1 年約等於人類 15 歲，第 2 年再加 9 歲，之後每多 1 年加 5 歲（僅供參考）。
+      </p>
+    </section>
+
+    <!-- 結果區 -->
+    <section class="result-card" aria-label="換算結果">
+      <div class="result-title">
+        <span class="paw">🐾</span>
+        換算結果
+      </div>
+      <div id="result-area">
+        <p class="placeholder-text">
+          請先輸入狗狗的出生日期，這裡就會出現牠現在幾歲，以及大約相當於幾歲的人類。
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ====== 元件取得 ======
+    const birthInput = document.getElementById("birthdate");
+    const nameInput = document.getElementById("dog-name");
+    const errorMsg = document.getElementById("error-msg");
+    const resultArea = document.getElementById("result-area");
+
+    // 預設：把今天設為 max 日期，避免選到未來
+    (function initDateLimit() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      birthInput.max = `${yyyy}-${mm}-${dd}`;
+    })();
+
+    // ====== 主換算邏輯 ======
+    function calculateDogAge() {
+      const birthValue = birthInput.value;
+      const dogNameRaw = nameInput.value.trim();
+      const dogName = dogNameRaw || "狗狗";
+
+      errorMsg.style.display = "none";
+      errorMsg.textContent = "";
+
+      if (!birthValue) {
+        resultArea.innerHTML =
+          '<p class="placeholder-text">請先選擇出生日期，系統會自動顯示年齡結果。</p>';
+        return;
+      }
+
+      const birthDate = new Date(birthValue);
+      const today = new Date();
+
+      // 檢查未來日期
+      if (birthDate > today) {
+        errorMsg.style.display = "block";
+        errorMsg.textContent = "出生日期不能晚於今天唷！";
+        resultArea.innerHTML =
+          '<p class="placeholder-text">請重新確認出生年月日。</p>';
+        return;
+      }
+
+      // 1. 計算實際狗年齡（年＋月）
+      let years = today.getFullYear() - birthDate.getFullYear();
+      let months = today.getMonth() - birthDate.getMonth();
+      let days = today.getDate() - birthDate.getDate();
+
+      if (days < 0) {
+        months -= 1;
+        // 簡化處理，不嚴格計算每月天數，只做年齡概略
+      }
+
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      // 轉成「年」的浮點數（用於換算人類年齡）
+      const ageInYearsFloat = years + months / 12;
+
+      // 2. 人類年齡換算：
+      //   第 1 年：15 歲
+      //   第 2 年：再加 9 歲 (共 24)
+      //   之後每年加 5 歲
+      let humanAge;
+      if (ageInYearsFloat <= 0) {
+        humanAge = 0;
+      } else if (ageInYearsFloat <= 1) {
+        humanAge = 15 * ageInYearsFloat;
+      } else if (ageInYearsFloat <= 2) {
+        humanAge = 15 + 9 * (ageInYearsFloat - 1);
+      } else {
+        humanAge = 24 + 5 * (ageInYearsFloat - 2);
+      }
+
+      const humanAgeRounded = humanAge.toFixed(1);
+
+      // 3. 組出文字結果
+      //   年齡說明（幾歲幾個月）
+      let ageText = "";
+      if (years <= 0 && months <= 0) {
+        ageText = "還不到 1 個月的小寶寶 🍼";
+      } else if (years <= 0) {
+        ageText = `${months} 個月大`;
+      } else if (months === 0) {
+        ageText = `${years} 歲`;
+      } else {
+        ageText = `${years} 歲 ${months} 個月`;
+      }
+
+      resultArea.innerHTML = `
+        <p class="result-main">
+          <strong>${dogName}</strong> 現在大約是 <strong>${ageText}</strong>。<br />
+          若換算成人類年齡，大約相當於 <strong>${humanAgeRounded} 歲</strong>。
+        </p>
+        <p class="result-sub">
+          ＊此為概略換算，不同犬種與體型實際老化速度會略有差異，請搭配獸醫師建議一起評估。
+        </p>
+      `;
+    }
+
+    // ====== 綁定事件：日期或名字一改就重算 ======
+    birthInput.addEventListener("input", calculateDogAge);
+    nameInput.addEventListener("input", calculateDogAge);
+  </script>
+</body>
+</html>
