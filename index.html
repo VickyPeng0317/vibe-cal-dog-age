@@ -14,7 +14,7 @@
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC",
         "PingFang TC", sans-serif;
-      background: #fff7e6; /* 溫暖米色底 */
+      background: #fff7e6;
       color: #4a3b2a;
       display: flex;
       justify-content: center;
@@ -34,11 +34,10 @@
       overflow: hidden;
     }
 
-    /* 柴柴耳朵裝飾 */
     .ear {
       width: 80px;
       height: 80px;
-      background: #e0a15a; /* 柴犬毛色 */
+      background: #e0a15a;
       position: absolute;
       top: -40px;
       border-radius: 80px 80px 10px 10px;
@@ -55,7 +54,6 @@
       left: -10px;
     }
 
-    /* ====== 標題區 ====== */
     .header {
       text-align: center;
       margin-bottom: 20px;
@@ -75,7 +73,6 @@
       color: #8a6a4a;
     }
 
-    /* 小柴頭像 */
     .dog-icon {
       width: 80px;
       height: 80px;
@@ -131,7 +128,6 @@
       transform: translateX(-50%);
     }
 
-    /* ====== 表單區 ====== */
     .card {
       background: #fffdf7;
       border-radius: 18px;
@@ -202,7 +198,6 @@
       margin-top: 4px;
     }
 
-    /* ====== 結果區 ====== */
     .result-card {
       background: #fff6e0;
       border-radius: 18px;
@@ -241,10 +236,44 @@
       margin-top: 6px;
     }
 
-    /* 預設提示 */
     .placeholder-text {
       font-size: 0.9rem;
       color: #a1825e;
+    }
+
+    /* === 新增：主按鈕樣式 === */
+    .btn-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+
+    .primary-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #e0a15a;
+      color: #fffaf3;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+      transition: transform 0.08s ease, box-shadow 0.08s ease,
+        background 0.15s ease;
+    }
+
+    .primary-btn:hover {
+      background: #d18f48;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .primary-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14);
     }
 
     @media (max-width: 480px) {
@@ -257,11 +286,9 @@
 </head>
 <body>
   <main class="app">
-    <!-- 柴柴耳朵 -->
     <div class="ear left"></div>
     <div class="ear right"></div>
 
-    <!-- 頂部標題 -->
     <header class="header">
       <div class="title">狗狗年齡小幫手</div>
       <div class="subtitle">輸入毛孩生日，一起看看牠現在幾歲、像幾歲的人 🐶</div>
@@ -275,7 +302,6 @@
       </div>
     </header>
 
-    <!-- 輸入區 -->
     <section class="card" aria-label="狗狗資料輸入">
       <div class="card-title">
         填寫狗狗資訊
@@ -287,7 +313,7 @@
         <input
           id="dog-name"
           type="text"
-          placeholder="例如：妙麗、球球、阿坤..."
+          placeholder="例如：妙麗、球球、Money..."
         />
         <p class="hint">若未填寫，會以「狗狗」稱呼。</p>
       </div>
@@ -302,9 +328,16 @@
       <p class="hint">
         換算規則：前 1 年約等於人類 15 歲，第 2 年再加 9 歲，之後每多 1 年加 5 歲（僅供參考）。
       </p>
+
+      <!-- === 新增：計算按鈕（按下時才儲存 localStorage） === -->
+      <div class="btn-row">
+        <button id="calc-btn" type="button" class="primary-btn">
+          <span>🐶</span>
+          <span>開始計算並記住生日</span>
+        </button>
+      </div>
     </section>
 
-    <!-- 結果區 -->
     <section class="result-card" aria-label="換算結果">
       <div class="result-title">
         <span class="paw">🐾</span>
@@ -312,20 +345,22 @@
       </div>
       <div id="result-area">
         <p class="placeholder-text">
-          請先輸入狗狗的出生日期，這裡就會出現牠現在幾歲，以及大約相當於幾歲的人類。
+          請先輸入狗狗的出生日期，按下「開始計算」後，這裡會顯示牠現在幾歲，以及大約相當於幾歲的人類。
         </p>
       </div>
     </section>
   </main>
 
   <script>
-    // ====== 元件取得 ======
     const birthInput = document.getElementById("birthdate");
     const nameInput = document.getElementById("dog-name");
     const errorMsg = document.getElementById("error-msg");
     const resultArea = document.getElementById("result-area");
+    const calcBtn = document.getElementById("calc-btn");
 
-    // 預設：把今天設為 max 日期，避免選到未來
+    const STORAGE_KEY_BIRTH = "dogAgeHelper_birthdate";
+
+    // 設定 max 為今天，避免未來日期
     (function initDateLimit() {
       const today = new Date();
       const yyyy = today.getFullYear();
@@ -334,7 +369,21 @@
       birthInput.max = `${yyyy}-${mm}-${dd}`;
     })();
 
-    // ====== 主換算邏輯 ======
+    // === 新增：從 localStorage 把生日帶回來 ===
+    (function restoreFromLocalStorage() {
+      try {
+        const savedBirth = localStorage.getItem(STORAGE_KEY_BIRTH);
+        if (savedBirth) {
+          birthInput.value = savedBirth;
+          // 自動幫使用者算好一次
+          calculateDogAge();
+        }
+      } catch (e) {
+        // 若瀏覽器無法使用 localStorage，就安靜忽略
+        console.warn("localStorage not available", e);
+      }
+    })();
+
     function calculateDogAge() {
       const birthValue = birthInput.value;
       const dogNameRaw = nameInput.value.trim();
@@ -352,7 +401,6 @@
       const birthDate = new Date(birthValue);
       const today = new Date();
 
-      // 檢查未來日期
       if (birthDate > today) {
         errorMsg.style.display = "block";
         errorMsg.textContent = "出生日期不能晚於今天唷！";
@@ -361,14 +409,12 @@
         return;
       }
 
-      // 1. 計算實際狗年齡（年＋月）
       let years = today.getFullYear() - birthDate.getFullYear();
       let months = today.getMonth() - birthDate.getMonth();
       let days = today.getDate() - birthDate.getDate();
 
       if (days < 0) {
         months -= 1;
-        // 簡化處理，不嚴格計算每月天數，只做年齡概略
       }
 
       if (months < 0) {
@@ -376,13 +422,7 @@
         months += 12;
       }
 
-      // 轉成「年」的浮點數（用於換算人類年齡）
       const ageInYearsFloat = years + months / 12;
-
-      // 2. 人類年齡換算：
-      //   第 1 年：15 歲
-      //   第 2 年：再加 9 歲 (共 24)
-      //   之後每年加 5 歲
       let humanAge;
       if (ageInYearsFloat <= 0) {
         humanAge = 0;
@@ -396,8 +436,6 @@
 
       const humanAgeRounded = humanAge.toFixed(1);
 
-      // 3. 組出文字結果
-      //   年齡說明（幾歲幾個月）
       let ageText = "";
       if (years <= 0 && months <= 0) {
         ageText = "還不到 1 個月的小寶寶 🍼";
@@ -420,9 +458,25 @@
       `;
     }
 
-    // ====== 綁定事件：日期或名字一改就重算 ======
-    birthInput.addEventListener("input", calculateDogAge);
-    nameInput.addEventListener("input", calculateDogAge);
+    // === 新增：按下按鈕才儲存生日到 localStorage ===
+    calcBtn.addEventListener("click", () => {
+      calculateDogAge();
+      const birthValue = birthInput.value;
+      if (!birthValue) return;
+
+      try {
+        localStorage.setItem(STORAGE_KEY_BIRTH, birthValue);
+      } catch (e) {
+        console.warn("cannot save to localStorage", e);
+      }
+    });
+
+    // 名字變更時即時更新畫面（不影響儲存邏輯）
+    nameInput.addEventListener("input", () => {
+      if (birthInput.value) {
+        calculateDogAge();
+      }
+    });
   </script>
 </body>
 </html>
